@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/splash_screen.dart';
 import 'screens/vps_management_screen.dart';
 import 'screens/ip_check_screen.dart';
-import 'services/supabase_service.dart';
+// import 'services/supabase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Performance optimizations
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // Optimize memory usage
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+    ),
+  );
 
   await Supabase.initialize(
     url: 'https://evfyxtitophrnmptdzsl.supabase.co',
@@ -15,8 +30,9 @@ Future<void> main() async {
   );
 
   // Initialize SupabaseService for real-time functionality
-  final supabaseService = SupabaseService();
-  await supabaseService.initializeRealtimeSubscriptions();
+  // TODO: Re-enable after fixing SupabaseService
+  // final supabaseService = SupabaseService();
+  // await supabaseService.initializeRealtimeSubscriptions();
 
   runApp(const PABSNetzillaApp());
 }
@@ -36,6 +52,19 @@ class PABSNetzillaApp extends StatelessWidget {
         '/vps-management': (context) => const VpsManagementScreen(),
         '/ip-check': (context) => const IpCheckScreen(),
       },
+      // Performance optimizations
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: const TextScaler.linear(1.0)),
+          child: child!,
+        );
+      },
+      // Reduce memory usage
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        scrollbars: false,
+      ),
     );
   }
 
