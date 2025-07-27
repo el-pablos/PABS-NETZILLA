@@ -1,18 +1,10 @@
 import 'package:flutter/material.dart';
 
 /// Enum untuk kategori serangan
-enum KategoriSerangan { 
-  TCP, 
-  ICMP, 
-  KUSTOM, 
-  ML_KHUSUS 
-}
+enum KategoriSerangan { tcp, icmp, kustom, mlKhusus }
 
 /// Enum untuk mode serangan
-enum ModeSerangan { 
-  PPS, 
-  GBPS 
-}
+enum ModeSerangan { pps, gbps }
 
 /// Model data untuk metode serangan DDoS
 class MetodeSerangan {
@@ -59,14 +51,17 @@ class MetodeSerangan {
       id: map['id'] ?? '',
       nama: map['nama'] ?? '',
       deskripsi: map['deskripsi'] ?? '',
-      ikon: IconData(map['ikon'] ?? Icons.security.codePoint, fontFamily: 'MaterialIcons'),
+      ikon: IconData(
+        map['ikon'] ?? Icons.security.codePoint,
+        fontFamily: 'MaterialIcons',
+      ),
       perintah: map['perintah'] ?? '',
       membutuhkanPort: map['membutuhkanPort'] ?? false,
       mendukungPPS: map['mendukungPPS'] ?? false,
       mendukungGBPS: map['mendukungGBPS'] ?? false,
       kategori: KategoriSerangan.values.firstWhere(
         (e) => e.name == map['kategori'],
-        orElse: () => KategoriSerangan.KUSTOM,
+        orElse: () => KategoriSerangan.kustom,
       ),
     );
   }
@@ -91,13 +86,14 @@ final List<MetodeSerangan> daftarMetodeSerangan = [
   MetodeSerangan(
     id: 'ml',
     nama: 'ML Stresser',
-    deskripsi: 'Serangan khusus untuk server Mobile Legends dengan targeting port game',
+    deskripsi:
+        'Serangan khusus untuk server Mobile Legends dengan targeting port game',
     ikon: Icons.games,
     perintah: 'hping3 --syn --flood -p 5000-5010 {ip}',
     membutuhkanPort: false,
     mendukungPPS: true,
     mendukungGBPS: false,
-    kategori: KategoriSerangan.ML_KHUSUS,
+    kategori: KategoriSerangan.mlKhusus,
   ),
   MetodeSerangan(
     id: 'tcp_syn',
@@ -108,7 +104,7 @@ final List<MetodeSerangan> daftarMetodeSerangan = [
     membutuhkanPort: true,
     mendukungPPS: true,
     mendukungGBPS: false,
-    kategori: KategoriSerangan.TCP,
+    kategori: KategoriSerangan.tcp,
   ),
   MetodeSerangan(
     id: 'tcp_ack',
@@ -119,7 +115,7 @@ final List<MetodeSerangan> daftarMetodeSerangan = [
     membutuhkanPort: true,
     mendukungPPS: true,
     mendukungGBPS: false,
-    kategori: KategoriSerangan.TCP,
+    kategori: KategoriSerangan.tcp,
   ),
   MetodeSerangan(
     id: 'icmp_flood',
@@ -130,19 +126,9 @@ final List<MetodeSerangan> daftarMetodeSerangan = [
     membutuhkanPort: false,
     mendukungPPS: true,
     mendukungGBPS: true,
-    kategori: KategoriSerangan.ICMP,
+    kategori: KategoriSerangan.icmp,
   ),
-  MetodeSerangan(
-    id: 'udp_flood',
-    nama: 'UDP Flood',
-    deskripsi: 'Serangan UDP flood untuk menghabiskan bandwidth server',
-    ikon: Icons.flash_on,
-    perintah: 'hping3 --udp --flood -p {port} {ip}',
-    membutuhkanPort: true,
-    mendukungPPS: true,
-    mendukungGBPS: true,
-    kategori: KategoriSerangan.KUSTOM,
-  ),
+
   MetodeSerangan(
     id: 'slowloris',
     nama: 'Slowloris',
@@ -152,7 +138,7 @@ final List<MetodeSerangan> daftarMetodeSerangan = [
     membutuhkanPort: true,
     mendukungPPS: false,
     mendukungGBPS: false,
-    kategori: KategoriSerangan.KUSTOM,
+    kategori: KategoriSerangan.kustom,
   ),
   MetodeSerangan(
     id: 'http_get',
@@ -163,7 +149,7 @@ final List<MetodeSerangan> daftarMetodeSerangan = [
     membutuhkanPort: true,
     mendukungPPS: true,
     mendukungGBPS: false,
-    kategori: KategoriSerangan.KUSTOM,
+    kategori: KategoriSerangan.kustom,
   ),
   MetodeSerangan(
     id: 'dns_amp',
@@ -174,6 +160,6 @@ final List<MetodeSerangan> daftarMetodeSerangan = [
     membutuhkanPort: false,
     mendukungPPS: true,
     mendukungGBPS: true,
-    kategori: KategoriSerangan.KUSTOM,
+    kategori: KategoriSerangan.kustom,
   ),
 ];

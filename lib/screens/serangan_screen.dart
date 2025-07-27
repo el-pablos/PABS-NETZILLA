@@ -26,12 +26,13 @@ class _SeranganScreenState extends State<SeranganScreen> {
   void _filterMethods() {
     setState(() {
       _filteredMethods = daftarMetodeSerangan.where((metode) {
-        final matchesSearch = _searchQuery.isEmpty ||
+        final matchesSearch =
+            _searchQuery.isEmpty ||
             metode.nama.toLowerCase().contains(_searchQuery.toLowerCase()) ||
             metode.deskripsi.toLowerCase().contains(_searchQuery.toLowerCase());
 
-        final matchesCategory = _selectedCategory == null ||
-            metode.kategori == _selectedCategory;
+        final matchesCategory =
+            _selectedCategory == null || metode.kategori == _selectedCategory;
 
         return matchesSearch && matchesCategory;
       }).toList();
@@ -100,13 +101,13 @@ class _SeranganScreenState extends State<SeranganScreen> {
               children: [
                 _buildFilterChip('Semua', null),
                 const SizedBox(width: 8),
-                _buildFilterChip('TCP', KategoriSerangan.TCP),
+                _buildFilterChip('TCP', KategoriSerangan.tcp),
                 const SizedBox(width: 8),
-                _buildFilterChip('ICMP', KategoriSerangan.ICMP),
+                _buildFilterChip('ICMP', KategoriSerangan.icmp),
                 const SizedBox(width: 8),
-                _buildFilterChip('Kustom', KategoriSerangan.KUSTOM),
+                _buildFilterChip('Kustom', KategoriSerangan.kustom),
                 const SizedBox(width: 8),
-                _buildFilterChip('ML Khusus', KategoriSerangan.ML_KHUSUS),
+                _buildFilterChip('ML Khusus', KategoriSerangan.mlKhusus),
               ],
             ),
           ),
@@ -170,7 +171,7 @@ class _SeranganScreenState extends State<SeranganScreen> {
   /// Build filter chip
   Widget _buildFilterChip(String label, KategoriSerangan? category) {
     final isSelected = _selectedCategory == category;
-    
+
     return FilterChip(
       label: Text(label),
       selected: isSelected,

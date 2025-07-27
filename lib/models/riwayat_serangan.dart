@@ -98,12 +98,14 @@ class RiwayatSerangan {
       port: map['port'],
       mode: ModeSerangan.values.firstWhere(
         (e) => e.name == map['mode'],
-        orElse: () => ModeSerangan.PPS,
+        orElse: () => ModeSerangan.pps,
       ),
       jumlahServer: map['jumlah_server'] ?? 0,
       sukses: (map['sukses'] ?? 0) == 1,
       timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp'] ?? 0),
-      durasi: map['durasi'] != null ? Duration(milliseconds: map['durasi']) : null,
+      durasi: map['durasi'] != null
+          ? Duration(milliseconds: map['durasi'])
+          : null,
       pesanError: map['pesan_error'],
     );
   }
@@ -111,19 +113,19 @@ class RiwayatSerangan {
   /// Get formatted timestamp
   String get timestampFormatted {
     return '${timestamp.day.toString().padLeft(2, '0')}/'
-           '${timestamp.month.toString().padLeft(2, '0')}/'
-           '${timestamp.year} '
-           '${timestamp.hour.toString().padLeft(2, '0')}:'
-           '${timestamp.minute.toString().padLeft(2, '0')}';
+        '${timestamp.month.toString().padLeft(2, '0')}/'
+        '${timestamp.year} '
+        '${timestamp.hour.toString().padLeft(2, '0')}:'
+        '${timestamp.minute.toString().padLeft(2, '0')}';
   }
 
   /// Get formatted duration
   String get durasiFormatted {
     if (durasi == null) return '-';
-    
+
     final minutes = durasi!.inMinutes;
     final seconds = durasi!.inSeconds % 60;
-    
+
     if (minutes > 0) {
       return '${minutes}m ${seconds}s';
     } else {
@@ -147,9 +149,9 @@ class RiwayatSerangan {
   /// Get mode display text
   String get modeDisplay {
     switch (mode) {
-      case ModeSerangan.PPS:
+      case ModeSerangan.pps:
         return 'PPS';
-      case ModeSerangan.GBPS:
+      case ModeSerangan.gbps:
         return 'GBPS';
     }
   }

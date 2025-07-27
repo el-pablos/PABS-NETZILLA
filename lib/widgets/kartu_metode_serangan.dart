@@ -30,7 +30,9 @@ class KartuMetodeSerangan extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: _getCategoryColor(metode.kategori).withValues(alpha: 0.1),
+                      color: _getCategoryColor(
+                        metode.kategori,
+                      ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -46,17 +48,17 @@ class KartuMetodeSerangan extends StatelessWidget {
                       children: [
                         Text(
                           metode.nama,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           _getCategoryDisplayName(metode.kategori),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: _getCategoryColor(metode.kategori),
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: _getCategoryColor(metode.kategori),
+                                fontWeight: FontWeight.w500,
+                              ),
                         ),
                       ],
                     ),
@@ -68,9 +70,9 @@ class KartuMetodeSerangan extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // Deskripsi
               Text(
                 metode.deskripsi,
@@ -80,9 +82,9 @@ class KartuMetodeSerangan extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // Chip mode dan fitur
               Wrap(
                 spacing: 8,
@@ -130,19 +132,12 @@ class KartuMetodeSerangan extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 14,
-            color: color,
-          ),
+          Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
             label,
@@ -159,13 +154,13 @@ class KartuMetodeSerangan extends StatelessWidget {
   /// Get color based on category
   Color _getCategoryColor(KategoriSerangan kategori) {
     switch (kategori) {
-      case KategoriSerangan.TCP:
+      case KategoriSerangan.tcp:
         return Colors.blue;
-      case KategoriSerangan.ICMP:
+      case KategoriSerangan.icmp:
         return Colors.green;
-      case KategoriSerangan.KUSTOM:
+      case KategoriSerangan.kustom:
         return Colors.purple;
-      case KategoriSerangan.ML_KHUSUS:
+      case KategoriSerangan.mlKhusus:
         return Colors.red;
     }
   }
@@ -173,13 +168,13 @@ class KartuMetodeSerangan extends StatelessWidget {
   /// Get display name for category
   String _getCategoryDisplayName(KategoriSerangan kategori) {
     switch (kategori) {
-      case KategoriSerangan.TCP:
+      case KategoriSerangan.tcp:
         return 'TCP Protocol';
-      case KategoriSerangan.ICMP:
+      case KategoriSerangan.icmp:
         return 'ICMP Protocol';
-      case KategoriSerangan.KUSTOM:
+      case KategoriSerangan.kustom:
         return 'Custom Method';
-      case KategoriSerangan.ML_KHUSUS:
+      case KategoriSerangan.mlKhusus:
         return 'Mobile Legends';
     }
   }

@@ -15,23 +15,28 @@ class ServiceEksekusiSerangan {
     required MetodeSerangan metode,
     required String targetIP,
     int? port,
-    ModeSerangan mode = ModeSerangan.PPS,
+    ModeSerangan mode = ModeSerangan.pps,
   }) async {
-    
     // Validasi input
     final validasiResult = _validasiInput(targetIP, port, metode);
     if (!validasiResult.sukses) {
-      await _simpanRiwayatGagal(metode, targetIP, port, mode, validasiResult.pesan);
+      await _simpanRiwayatGagal(
+        metode,
+        targetIP,
+        port,
+        mode,
+        validasiResult.pesan,
+      );
       return validasiResult;
     }
 
     try {
       // Bangun perintah
       final perintah = _bangunPerintah(metode, targetIP, port, mode);
-      
+
       // Simulasi jumlah server (dalam implementasi nyata, ini akan dari server pool)
       final jumlahServer = _simulasiJumlahServer();
-      
+
       // Eksekusi perintah melalui platform channel
       final startTime = DateTime.now();
       final result = await _eksekusiPlatformChannel(perintah);
@@ -40,7 +45,7 @@ class ServiceEksekusiSerangan {
 
       // Simulasi tingkat keberhasilan (95% sukses)
       final sukses = Random().nextDouble() < 0.95;
-      
+
       if (sukses) {
         // Simpan riwayat sukses
         final riwayat = RiwayatSerangan.sukses(
@@ -51,9 +56,9 @@ class ServiceEksekusiSerangan {
           jumlahServer: jumlahServer,
           durasi: durasi,
         );
-        
+
         await _dbHelper.simpanRiwayatSerangan(riwayat);
-        
+
         // Tampilkan notifikasi sukses
         await _notifikasi.tampilkanNotifikasiSerangan(
           judul: 'Serangan Berhasil',
@@ -73,7 +78,7 @@ class ServiceEksekusiSerangan {
         // Simulasi error
         const errorMsg = 'Koneksi ke target terputus';
         await _simpanRiwayatGagal(metode, targetIP, port, mode, errorMsg);
-        
+
         await _notifikasi.tampilkanNotifikasiSerangan(
           judul: 'Serangan Gagal',
           pesan: '${metode.nama} gagal dieksekusi: $errorMsg',
@@ -81,11 +86,10 @@ class ServiceEksekusiSerangan {
 
         return HasilSerangan.error(errorMsg);
       }
-      
     } catch (e) {
       final errorMsg = 'Gagal mengeksekusi perintah: $e';
       await _simpanRiwayatGagal(metode, targetIP, port, mode, errorMsg);
-      
+
       await _notifikasi.tampilkanNotifikasiSerangan(
         judul: 'Error Sistem',
         pesan: 'Terjadi kesalahan saat eksekusi serangan',
@@ -96,7 +100,11 @@ class ServiceEksekusiSerangan {
   }
 
   /// Validasi input sebelum eksekusi
-  HasilSerangan _validasiInput(String targetIP, int? port, MetodeSerangan metode) {
+  HasilSerangan _validasiInput(
+    String targetIP,
+    int? port,
+    MetodeSerangan metode,
+  ) {
     // Validasi IP address
     if (!_validasiIP(targetIP)) {
       return HasilSerangan.error('❌ Alamat IP tidak valid: $targetIP');
@@ -125,18 +133,23 @@ class ServiceEksekusiSerangan {
   }
 
   /// Bangun perintah berdasarkan metode dan parameter
-  String _bangunPerintah(MetodeSerangan metode, String targetIP, int? port, ModeSerangan mode) {
+  String _bangunPerintah(
+    MetodeSerangan metode,
+    String targetIP,
+    int? port,
+    ModeSerangan mode,
+  ) {
     String perintah = metode.perintah;
-    
+
     // Replace placeholder
     perintah = perintah.replaceAll('{ip}', targetIP);
-    
+
     if (port != null) {
       perintah = perintah.replaceAll('{port}', port.toString());
     }
 
     // Tambahkan parameter mode jika didukung
-    if (mode == ModeSerangan.GBPS && metode.mendukungGBPS) {
+    if (mode == ModeSerangan.gbps && metode.mendukungGBPS) {
       perintah += ' --data 1024'; // Simulasi parameter GBPS
     }
 
@@ -178,7 +191,7 @@ class ServiceEksekusiSerangan {
       mode: mode,
       pesanError: error,
     );
-    
+
     await _dbHelper.simpanRiwayatSerangan(riwayat);
   }
 
@@ -187,7 +200,7 @@ class ServiceEksekusiSerangan {
     try {
       // Dalam implementasi nyata, ini akan menghentikan semua proses yang berjalan
       await platform.invokeMethod('killAllProcesses');
-      
+
       await _notifikasi.tampilkanNotifikasiSerangan(
         judul: 'Serangan Dihentikan',
         pesan: 'Semua serangan telah dihentikan',

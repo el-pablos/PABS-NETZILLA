@@ -7,10 +7,7 @@ import '../services/services.dart';
 class DetailSeranganScreen extends StatefulWidget {
   final MetodeSerangan metode;
 
-  const DetailSeranganScreen({
-    super.key,
-    required this.metode,
-  });
+  const DetailSeranganScreen({super.key, required this.metode});
 
   @override
   State<DetailSeranganScreen> createState() => _DetailSeranganScreenState();
@@ -20,8 +17,8 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
   final _formKey = GlobalKey<FormState>();
   final _ipController = TextEditingController();
   final _portController = TextEditingController();
-  
-  ModeSerangan _selectedMode = ModeSerangan.PPS;
+
+  ModeSerangan _selectedMode = ModeSerangan.pps;
   bool _isLoading = false;
 
   final ServiceEksekusiSerangan _seranganService = ServiceEksekusiSerangan();
@@ -58,7 +55,7 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
   /// Validasi port
   String? _validatePort(String? value) {
     if (!widget.metode.membutuhkanPort) return null;
-    
+
     if (value == null || value.isEmpty) {
       return 'Port tidak boleh kosong';
     }
@@ -81,7 +78,7 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
 
     try {
       final targetIP = _ipController.text.trim();
-      final port = widget.metode.membutuhkanPort 
+      final port = widget.metode.membutuhkanPort
           ? int.tryParse(_portController.text.trim())
           : null;
 
@@ -98,10 +95,7 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -148,10 +142,7 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.metode.nama),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text(widget.metode.nama), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -180,16 +171,20 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
                               children: [
                                 Text(
                                   widget.metode.nama,
-                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   widget.metode.deskripsi,
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
                                 ),
                               ],
                             ),
@@ -206,9 +201,9 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
               // Configuration section
               Text(
                 'Konfigurasi Serangan',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
 
@@ -221,9 +216,8 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
                     children: [
                       Text(
                         'Target IP Address',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
@@ -258,9 +252,8 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
                       children: [
                         Text(
                           'Port Target',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
@@ -295,16 +288,17 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
                       children: [
                         Text(
                           'Mode Serangan',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 12),
                         if (widget.metode.mendukungPPS)
                           RadioListTile<ModeSerangan>(
                             title: const Text('PPS (Packets Per Second)'),
-                            subtitle: const Text('Fokus pada jumlah paket per detik'),
-                            value: ModeSerangan.PPS,
+                            subtitle: const Text(
+                              'Fokus pada jumlah paket per detik',
+                            ),
+                            value: ModeSerangan.pps,
                             groupValue: _selectedMode,
                             onChanged: (value) {
                               setState(() {
@@ -315,8 +309,10 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
                         if (widget.metode.mendukungGBPS)
                           RadioListTile<ModeSerangan>(
                             title: const Text('GBPS (Gigabits Per Second)'),
-                            subtitle: const Text('Fokus pada bandwidth maksimal'),
-                            value: ModeSerangan.GBPS,
+                            subtitle: const Text(
+                              'Fokus pada bandwidth maksimal',
+                            ),
+                            value: ModeSerangan.gbps,
                             groupValue: _selectedMode,
                             onChanged: (value) {
                               setState(() {
@@ -344,7 +340,9 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.rocket_launch),
-                  label: Text(_isLoading ? 'Meluncurkan...' : 'Luncurkan Serangan'),
+                  label: Text(
+                    _isLoading ? 'Meluncurkan...' : 'Luncurkan Serangan',
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -361,17 +359,13 @@ class _DetailSeranganScreenState extends State<DetailSeranganScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.warning,
-                        color: Colors.orange,
-                      ),
+                      Icon(Icons.warning, color: Colors.orange),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'Gunakan tool ini hanya untuk testing keamanan pada sistem yang Anda miliki atau dengan izin eksplisit.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.orange.shade700,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Colors.orange.shade700),
                         ),
                       ),
                     ],
