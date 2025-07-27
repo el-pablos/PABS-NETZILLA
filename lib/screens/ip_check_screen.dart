@@ -191,6 +191,7 @@ class _IpCheckScreenState extends State<IpCheckScreen> {
                       fontSize: 16,
                       color: Color(0xFF9929EA),
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -232,7 +233,7 @@ class _IpCheckScreenState extends State<IpCheckScreen> {
 
   Widget _buildIpInfoCard() {
     final ipInfo = _currentIpInfo!;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -254,9 +255,12 @@ class _IpCheckScreenState extends State<IpCheckScreen> {
                 const Spacer(),
                 if (ipInfo.isSuspicious)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.2),
+                      color: Colors.red.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.red),
                     ),
@@ -272,40 +276,46 @@ class _IpCheckScreenState extends State<IpCheckScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            ...ipInfo.allInfo.entries.map((entry) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 120,
-                    child: Text(
-                      '${entry.key}:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withOpacity(0.8),
+            ...ipInfo.allInfo.entries.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      child: Text(
+                        '${entry.key}:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: SelectableText(
-                      entry.value,
-                      style: const TextStyle(color: Colors.white),
+                    Expanded(
+                      child: SelectableText(
+                        entry.value,
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            )),
+            ),
             if (ipInfo.securityFlags.isNotEmpty) ...[
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
-                children: ipInfo.securityFlags.map((flag) => Chip(
-                  label: Text(flag),
-                  backgroundColor: Colors.red.withOpacity(0.2),
-                  side: const BorderSide(color: Colors.red),
-                  labelStyle: const TextStyle(color: Colors.red),
-                )).toList(),
+                children: ipInfo.securityFlags
+                    .map(
+                      (flag) => Chip(
+                        label: Text(flag),
+                        backgroundColor: Colors.red.withValues(alpha: 0.2),
+                        side: const BorderSide(color: Colors.red),
+                        labelStyle: const TextStyle(color: Colors.red),
+                      ),
+                    )
+                    .toList(),
               ),
             ],
           ],
@@ -338,7 +348,7 @@ class _IpCheckScreenState extends State<IpCheckScreen> {
 
   Widget _buildPingResults() {
     final results = _pingResults!;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -406,16 +416,18 @@ class _IpCheckScreenState extends State<IpCheckScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            ..._tracerouteResults!.map((hop) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                hop,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'monospace',
+            ..._tracerouteResults!.map(
+              (hop) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  hop,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'monospace',
+                  ),
                 ),
               ),
-            )),
+            ),
           ],
         ),
       ),

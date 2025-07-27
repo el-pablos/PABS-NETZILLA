@@ -50,6 +50,8 @@ class KartuMetodeSerangan extends StatelessWidget {
                           metode.nama,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                         const SizedBox(height: 2),
                         Text(

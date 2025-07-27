@@ -53,7 +53,9 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
                     itemCount: service.servers.length,
                     itemBuilder: (context, index) {
                       final server = service.servers[index];
-                      final connectionInfo = service.getConnectionInfo(server.id);
+                      final connectionInfo = service.getConnectionInfo(
+                        server.id,
+                      );
                       return _buildServerCard(server, connectionInfo);
                     },
                   ),
@@ -78,7 +80,7 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
           Icon(
             Icons.dns_outlined,
             size: 64,
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -89,7 +91,7 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
           Text(
             'Add your first VPS server to get started',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 24),
@@ -108,10 +110,10 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF9929EA).withOpacity(0.1),
+        color: const Color(0xFF9929EA).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFF9929EA).withOpacity(0.3),
+          color: const Color(0xFF9929EA).withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -126,7 +128,7 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
           Container(
             width: 1,
             height: 40,
-            color: const Color(0xFF9929EA).withOpacity(0.3),
+            color: const Color(0xFF9929EA).withValues(alpha: 0.3),
           ),
           Expanded(
             child: _buildStatItem(
@@ -138,7 +140,7 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
           Container(
             width: 1,
             height: 40,
-            color: const Color(0xFF9929EA).withOpacity(0.3),
+            color: const Color(0xFF9929EA).withValues(alpha: 0.3),
           ),
           Expanded(
             child: _buildStatItem(
@@ -167,10 +169,7 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
         ),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.white.withOpacity(0.7),
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.7)),
         ),
       ],
     );
@@ -227,9 +226,7 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
                       const SizedBox(height: 4),
                       Text(
                         server.connectionString,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                        ),
+                        style: TextStyle(color: Colors.white.withOpacity(0.7)),
                       ),
                     ],
                   ),
@@ -329,9 +326,15 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
     final isEdit = server != null;
     final nameController = TextEditingController(text: server?.name ?? '');
     final hostController = TextEditingController(text: server?.host ?? '');
-    final portController = TextEditingController(text: server?.port.toString() ?? '22');
-    final usernameController = TextEditingController(text: server?.username ?? '');
-    final passwordController = TextEditingController(text: server?.password ?? '');
+    final portController = TextEditingController(
+      text: server?.port.toString() ?? '22',
+    );
+    final usernameController = TextEditingController(
+      text: server?.username ?? '',
+    );
+    final passwordController = TextEditingController(
+      text: server?.password ?? '',
+    );
 
     showDialog(
       context: context,
@@ -387,7 +390,10 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
               final username = usernameController.text.trim();
               final password = passwordController.text.trim();
 
-              if (name.isEmpty || host.isEmpty || username.isEmpty || password.isEmpty) {
+              if (name.isEmpty ||
+                  host.isEmpty ||
+                  username.isEmpty ||
+                  password.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Please fill all fields')),
                 );
@@ -418,13 +424,21 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(isEdit ? 'Server updated successfully' : 'Server added successfully'),
+                    content: Text(
+                      isEdit
+                          ? 'Server updated successfully'
+                          : 'Server added successfully',
+                    ),
                   ),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(isEdit ? 'Failed to update server' : 'Failed to add server'),
+                    content: Text(
+                      isEdit
+                          ? 'Failed to update server'
+                          : 'Failed to add server',
+                    ),
                   ),
                 );
               }
@@ -441,7 +455,10 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.black,
-        title: const Text('Delete Server', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Delete Server',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(
           'Are you sure you want to delete "${server.name}"?',
           style: const TextStyle(color: Colors.white),
@@ -455,7 +472,7 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
             onPressed: () async {
               final success = await _vpsService.deleteServer(server.id);
               Navigator.pop(context);
-              
+
               if (success) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Server deleted successfully')),
