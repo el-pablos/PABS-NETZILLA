@@ -103,7 +103,7 @@ final List<MetodeSerangan> daftarMetodeSerangan = [
     perintah: 'hping3 --syn --flood -p {port} {ip}',
     membutuhkanPort: true,
     mendukungPPS: true,
-    mendukungGBPS: false,
+    mendukungGBPS: true,
     kategori: KategoriSerangan.tcp,
   ),
   MetodeSerangan(
@@ -114,7 +114,7 @@ final List<MetodeSerangan> daftarMetodeSerangan = [
     perintah: 'hping3 --ack --flood -p {port} {ip}',
     membutuhkanPort: true,
     mendukungPPS: true,
-    mendukungGBPS: false,
+    mendukungGBPS: true,
     kategori: KategoriSerangan.tcp,
   ),
   MetodeSerangan(
