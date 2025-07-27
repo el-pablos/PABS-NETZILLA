@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
+import 'package:dartssh2/dartssh2.dart';
 import '../models/vps_server.dart';
 import 'supabase_service.dart';
 
@@ -227,41 +228,90 @@ class VpsServerService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Simulate connection test (replace with actual SSH connection)
-      await Future.delayed(const Duration(seconds: 2));
+      // Real SSH connection test
+      final socket = await SSHSocket.connect(server.host, server.port);
+      final client = SSHClient(
+        socket,
+        username: server.username,
+        onPasswordRequest: () => server.password,
+      );
 
-      // For now, randomly succeed or fail
-      final success = DateTime.now().millisecond % 2 == 0;
+      // Get system information
+      final systemInfo = <String, String>{};
+
+      try {
+        // Get OS info
+        final osResult = await client.run(
+          'cat /etc/os-release | grep PRETTY_NAME',
+        );
+        final osOutput = String.fromCharCodes(osResult);
+        if (osOutput.isNotEmpty) {
+          final osMatch = RegExp(r'PRETTY_NAME="([^"]*)"').firstMatch(osOutput);
+          systemInfo['os'] = osMatch?.group(1) ?? 'Linux';
+        }
+
+        // Get CPU info
+        final cpuResult = await client.run('nproc');
+        final cpuOutput = String.fromCharCodes(cpuResult).trim();
+        if (cpuOutput.isNotEmpty) {
+          systemInfo['cpu'] = '$cpuOutput cores';
+        }
+
+        // Get memory info
+        final memResult = await client.run(
+          'free -h | grep Mem | awk \'{print \$2}\'',
+        );
+        final memOutput = String.fromCharCodes(memResult).trim();
+        if (memOutput.isNotEmpty) {
+          systemInfo['memory'] = memOutput;
+        }
+
+        // Get disk info
+        final diskResult = await client.run(
+          'df -h / | tail -1 | awk \'{print \$2}\'',
+        );
+        final diskOutput = String.fromCharCodes(diskResult).trim();
+        if (diskOutput.isNotEmpty) {
+          systemInfo['disk'] = diskOutput;
+        }
+
+        // Get uptime
+        final uptimeResult = await client.run('uptime -p');
+        final uptimeOutput = String.fromCharCodes(uptimeResult).trim();
+        if (uptimeOutput.isNotEmpty) {
+          systemInfo['uptime'] = uptimeOutput;
+        }
+      } catch (e) {
+        debugPrint('Error getting system info: $e');
+        // Use default values if commands fail
+        systemInfo.addAll({
+          'os': 'Linux',
+          'cpu': 'Unknown',
+          'memory': 'Unknown',
+          'disk': 'Unknown',
+        });
+      }
+
+      client.close();
+      await socket.done;
 
       final connectionInfo = VpsConnectionInfo(
         server: server,
-        status: success
-            ? VpsConnectionStatus.connected
-            : VpsConnectionStatus.error,
-        errorMessage: success ? null : 'Connection failed',
-        connectedAt: success ? DateTime.now() : null,
-        systemInfo: success
-            ? {
-                'os': 'Ubuntu 20.04',
-                'cpu': '2 cores',
-                'memory': '4GB',
-                'disk': '80GB',
-              }
-            : null,
+        status: VpsConnectionStatus.connected,
+        connectedAt: DateTime.now(),
+        systemInfo: systemInfo,
       );
 
       _connections[serverId] = connectionInfo;
 
       // Update last connected time
-      if (success) {
-        await updateServer(
-          serverId,
-          metadata: {
-            ...?server.metadata,
-            'last_connected': DateTime.now().toIso8601String(),
-          },
-        );
-      }
+      await updateServer(
+        serverId,
+        metadata: {
+          ...?server.metadata,
+          'last_connected': DateTime.now().toIso8601String(),
+        },
+      );
 
       notifyListeners();
       return connectionInfo;
