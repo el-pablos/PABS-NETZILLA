@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/vps_server.dart';
 import '../services/vps_server_service.dart';
+import '../services/cnc_service.dart';
+import 'cnc_monitoring_screen.dart';
 
 /// Screen untuk mengelola VPS servers
 class VpsManagementScreen extends StatefulWidget {
@@ -13,11 +15,89 @@ class VpsManagementScreen extends StatefulWidget {
 
 class _VpsManagementScreenState extends State<VpsManagementScreen> {
   final VpsServerService _vpsService = VpsServerService();
+  final CncService _cncService = CncService();
+  bool _isConnectingAll = false;
 
   @override
   void initState() {
     super.initState();
     _vpsService.initialize();
+  }
+
+  Future<void> _connectAllVps() async {
+    setState(() {
+      _isConnectingAll = true;
+    });
+
+    try {
+      final result = await _cncService.connectAllVps();
+
+      if (mounted) {
+        setState(() {
+          _isConnectingAll = false;
+        });
+
+        // Show result dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(
+              result['success']
+                  ? '✅ Connection Success'
+                  : '❌ Connection Failed',
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Connected: ${result['connectedCount']}/${result['totalCount']} VPS',
+                ),
+                const SizedBox(height: 8),
+                if (result['errors'].isNotEmpty) ...[
+                  const Text(
+                    'Errors:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  ...result['errors'].map<Widget>((error) => Text('• $error')),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CncMonitoringScreen(),
+                    ),
+                  );
+                },
+                child: const Text('View Monitoring'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isConnectingAll = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Connection failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -29,6 +109,27 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => _vpsService.loadVpsAndSetupCnc(),
+          ),
+          IconButton(
+            icon: _isConnectingAll
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.power),
+            onPressed: _isConnectingAll ? null : _connectAllVps,
+            tooltip: 'Connect All VPS',
+          ),
+          IconButton(
+            icon: const Icon(Icons.monitor),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CncMonitoringScreen(),
+              ),
+            ),
+            tooltip: 'CNC Monitoring',
           ),
           IconButton(
             icon: const Icon(Icons.add),
