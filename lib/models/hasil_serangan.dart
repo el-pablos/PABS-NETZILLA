@@ -1,5 +1,11 @@
 /// Model untuk hasil eksekusi serangan
 class HasilSerangan {
+  final String? id;
+  final String? metodeId;
+  final String? metodeNama;
+  final String? targetIp;
+  final int? port;
+  final String? mode;
   final bool sukses;
   final String pesan;
   final String? error;
@@ -8,6 +14,12 @@ class HasilSerangan {
   final Duration? durasi;
 
   HasilSerangan({
+    this.id,
+    this.metodeId,
+    this.metodeNama,
+    this.targetIp,
+    this.port,
+    this.mode,
     required this.sukses,
     required this.pesan,
     this.error,

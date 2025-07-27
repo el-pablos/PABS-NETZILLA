@@ -90,10 +90,10 @@ class SupabaseService extends ChangeNotifier {
         'metode_nama': hasil.metodeNama,
         'target_ip': hasil.targetIp,
         'port': hasil.port,
-        'mode': hasil.mode.name,
+        'mode': hasil.mode ?? 'unknown',
         'sukses': hasil.sukses,
         'pesan': hasil.pesan,
-        'durasi_ms': hasil.durasi.inMilliseconds,
+        'durasi_ms': hasil.durasi?.inMilliseconds ?? 0,
         'timestamp': hasil.timestamp.toIso8601String(),
         'jumlah_server': hasil.jumlahServer,
         'created_at': DateTime.now().toIso8601String(),
@@ -125,7 +125,7 @@ class SupabaseService extends ChangeNotifier {
           final riwayat = RiwayatSerangan(
             id: item['id'] as String,
             metodeId: item['metode_id'] as String,
-            metodeNama: item['metode_nama'] as String,
+            namaMetode: item['metode_nama'] as String,
             targetIp: item['target_ip'] as String,
             port: item['port'] as int?,
             mode: ModeSerangan.values.firstWhere(
@@ -136,7 +136,7 @@ class SupabaseService extends ChangeNotifier {
             sukses: item['sukses'] as bool? ?? false,
             timestamp: DateTime.parse(item['timestamp'] as String),
             durasi: Duration(milliseconds: item['durasi_ms'] as int? ?? 0),
-            pesan: item['pesan'] as String? ?? '',
+            pesanError: item['pesan'] as String? ?? '',
           );
           history.add(riwayat);
         } catch (e) {
@@ -155,36 +155,34 @@ class SupabaseService extends ChangeNotifier {
   Future<StatistikSerangan> getAttackStatistics() async {
     try {
       // Get total attacks
-      final totalResponse = await _client
-          .from('attack_history')
-          .select('id', const FetchOptions(count: CountOption.exact));
+      final totalResponse = await _client.from('attack_history').select('id');
 
-      final totalSerangan = totalResponse.count ?? 0;
+      final totalSerangan = totalResponse.length;
 
       // Get successful attacks
       final successResponse = await _client
           .from('attack_history')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id')
           .eq('sukses', true);
 
-      final seranganBerhasil = successResponse.count ?? 0;
+      final seranganBerhasil = successResponse.length;
 
       // Get recent attacks (last 24 hours)
       final yesterday = DateTime.now().subtract(const Duration(days: 1));
       final recentResponse = await _client
           .from('attack_history')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id')
           .gte('timestamp', yesterday.toIso8601String());
 
-      final seranganHariIni = recentResponse.count ?? 0;
+      final seranganHariIni = recentResponse.length;
 
       // Get active servers count from VPS servers
       final vpsResponse = await _client
           .from('vps_servers')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id')
           .eq('is_active', true);
 
-      final totalServer = vpsResponse.count ?? 0;
+      final totalServer = vpsResponse.length;
 
       // Calculate success rate
       final tingkatKeberhasilan = totalSerangan > 0
