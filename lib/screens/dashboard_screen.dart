@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 // import '../services/supabase_service.dart';
+import '../widgets/optimized_widgets.dart';
+import '../services/performance_service.dart';
 import '../services/vps_server_service.dart';
 import 'serangan_screen.dart';
 import 'riwayat_screen.dart';
 
 /// Dashboard utama aplikasi PABS-NETZILLA
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends OptimizedStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends OptimizedState<DashboardScreen> {
   int _currentIndex = 0;
   StatistikSerangan _statistik = StatistikSerangan.kosong();
   bool _isLoading = true;
@@ -26,8 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   ];
 
   @override
-  void initState() {
-    super.initState();
+  void onInitState() {
     _loadStatistik();
   }
 
@@ -50,17 +51,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         totalUptime: Duration(hours: now.hour, minutes: now.minute),
       );
 
-      if (mounted) {
-        setState(() {
-          _statistik = statistik;
-          _isLoading = false;
-        });
-      }
+      optimizedSetState(() {
+        _statistik = statistik;
+        _isLoading = false;
+      });
     } catch (e) {
+      optimizedSetState(() {
+        _isLoading = false;
+      });
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error memuat statistik: $e'),
@@ -73,6 +72,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return Scaffold(
       appBar: _currentIndex == 0
           ? AppBar(

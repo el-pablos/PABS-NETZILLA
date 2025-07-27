@@ -4,10 +4,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/splash_screen.dart';
 import 'screens/vps_management_screen.dart';
 import 'screens/ip_check_screen.dart';
+import 'services/performance_service.dart';
 // import 'services/supabase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Performance Service first for optimal performance
+  final performanceService = PerformanceService();
+  performanceService.initialize();
 
   // Performance optimizations
   SystemChrome.setPreferredOrientations([
