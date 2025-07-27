@@ -95,7 +95,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          _DashboardContent(statistik: _statistik, isLoading: _isLoading),
+          _DashboardContent(
+            statistik: _statistik,
+            isLoading: _isLoading,
+            onTabChange: (index) => setState(() => _currentIndex = index),
+          ),
           const SeranganScreen(),
           const RiwayatScreen(),
         ],
@@ -134,8 +138,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 class _DashboardContent extends StatelessWidget {
   final StatistikSerangan? statistik;
   final bool isLoading;
+  final Function(int)? onTabChange;
 
-  const _DashboardContent({this.statistik, this.isLoading = false});
+  const _DashboardContent({
+    this.statistik,
+    this.isLoading = false,
+    this.onTabChange,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -266,7 +275,8 @@ class _DashboardContent extends StatelessWidget {
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () {
-                      // TODO: Quick attack
+                      // Switch to attack tab
+                      onTabChange?.call(1);
                     },
                   ),
                   const Divider(height: 1),
@@ -308,7 +318,8 @@ class _DashboardContent extends StatelessWidget {
                     subtitle: const Text('Analisis performa serangan'),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () {
-                      // TODO: Show reports
+                      // Switch to history/reports tab
+                      onTabChange?.call(2);
                     },
                   ),
                 ],
