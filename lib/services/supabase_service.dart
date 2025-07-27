@@ -15,7 +15,7 @@ class SupabaseService extends ChangeNotifier {
   SupabaseService._internal();
 
   final SupabaseClient _client = Supabase.instance.client;
-  
+
   // Real-time subscriptions
   RealtimeChannel? _attackHistoryChannel;
   RealtimeChannel? _vpsServersChannel;
@@ -98,7 +98,7 @@ class SupabaseService extends ChangeNotifier {
         'jumlah_server': hasil.jumlahServer,
         'created_at': DateTime.now().toIso8601String(),
       });
-      
+
       notifyListeners();
       return true;
     } catch (e) {
@@ -158,7 +158,7 @@ class SupabaseService extends ChangeNotifier {
       final totalResponse = await _client
           .from('attack_history')
           .select('id', const FetchOptions(count: CountOption.exact));
-      
+
       final totalSerangan = totalResponse.count ?? 0;
 
       // Get successful attacks
@@ -166,7 +166,7 @@ class SupabaseService extends ChangeNotifier {
           .from('attack_history')
           .select('id', const FetchOptions(count: CountOption.exact))
           .eq('sukses', true);
-      
+
       final seranganBerhasil = successResponse.count ?? 0;
 
       // Get recent attacks (last 24 hours)
@@ -175,7 +175,7 @@ class SupabaseService extends ChangeNotifier {
           .from('attack_history')
           .select('id', const FetchOptions(count: CountOption.exact))
           .gte('timestamp', yesterday.toIso8601String());
-      
+
       final seranganHariIni = recentResponse.count ?? 0;
 
       // Get active servers count from VPS servers
@@ -183,36 +183,25 @@ class SupabaseService extends ChangeNotifier {
           .from('vps_servers')
           .select('id', const FetchOptions(count: CountOption.exact))
           .eq('is_active', true);
-      
+
       final totalServer = vpsResponse.count ?? 0;
 
       // Calculate success rate
-      final tingkatKeberhasilan = totalSerangan > 0 
-          ? (seranganBerhasil / totalSerangan) * 100 
+      final tingkatKeberhasilan = totalSerangan > 0
+          ? (seranganBerhasil / totalSerangan) * 100
           : 0.0;
 
       return StatistikSerangan(
         totalSerangan: totalSerangan,
-        seranganBerhasil: seranganBerhasil,
+        seranganSukses: seranganBerhasil,
         seranganGagal: totalSerangan - seranganBerhasil,
-        tingkatKeberhasilan: tingkatKeberhasilan,
-        seranganHariIni: seranganHariIni,
         totalServer: totalServer,
-        serverAktif: totalServer, // Assuming all active servers are online
-        rataRataWaktuRespon: 150.0, // This would need more complex calculation
+        tingkatKeberhasilan: tingkatKeberhasilan,
+        totalUptime: const Duration(hours: 24), // Default uptime
       );
     } catch (e) {
       debugPrint('Error getting attack statistics: $e');
-      return StatistikSerangan(
-        totalSerangan: 0,
-        seranganBerhasil: 0,
-        seranganGagal: 0,
-        tingkatKeberhasilan: 0.0,
-        seranganHariIni: 0,
-        totalServer: 0,
-        serverAktif: 0,
-        rataRataWaktuRespon: 0.0,
-      );
+      return StatistikSerangan.kosong();
     }
   }
 
@@ -293,7 +282,7 @@ class SupabaseService extends ChangeNotifier {
         'additional_info': ipInfo.additionalInfo,
         'checked_at': DateTime.now().toIso8601String(),
       });
-      
+
       notifyListeners();
       return true;
     } catch (e) {
