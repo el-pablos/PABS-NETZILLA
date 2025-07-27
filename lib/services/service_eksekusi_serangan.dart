@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/services.dart';
 import '../models/models.dart';
 import 'database_helper.dart';
+import 'supabase_service.dart';
 import 'service_notifikasi.dart';
 
 /// Service untuk mengeksekusi serangan DDoS
@@ -9,6 +10,7 @@ class ServiceEksekusiSerangan {
   static const platform = MethodChannel('com.pabsnetzilla/shell');
   static final DatabaseHelper _dbHelper = DatabaseHelper();
   static final ServiceNotifikasi _notifikasi = ServiceNotifikasi();
+  final SupabaseService _supabaseService = SupabaseService();
 
   /// Eksekusi serangan DDoS
   Future<HasilSerangan> eksekusiSerangan({
@@ -58,6 +60,14 @@ class ServiceEksekusiSerangan {
         );
 
         await _dbHelper.simpanRiwayatSerangan(riwayat);
+
+        // Save to Supabase for real-time sync
+        final hasilSerangan = HasilSerangan.sukses(
+          '✅ Serangan ${metode.nama} berhasil dieksekusi!',
+          jumlahServer: jumlahServer,
+          durasi: durasi,
+        );
+        await _supabaseService.saveAttackResult(hasilSerangan);
 
         // Tampilkan notifikasi sukses
         await _notifikasi.tampilkanNotifikasiSerangan(

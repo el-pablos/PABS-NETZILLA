@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/ip_info.dart';
+import 'supabase_service.dart';
 
 /// Service untuk checking IP address information
 class IpCheckService extends ChangeNotifier {
@@ -207,55 +208,21 @@ class IpCheckService extends ChangeNotifier {
     return null;
   }
 
-  /// Save IP info to Supabase for history
+  /// Save IP info to Supabase for history using SupabaseService
   Future<void> _saveToSupabase(IpInfo ipInfo) async {
     try {
-      await _supabase.from('ip_checks').upsert({
-        'ip_address': ipInfo.ip,
-        'hostname': ipInfo.hostname,
-        'city': ipInfo.city,
-        'region': ipInfo.region,
-        'country': ipInfo.country,
-        'country_code': ipInfo.countryCode,
-        'timezone': ipInfo.timezone,
-        'isp': ipInfo.isp,
-        'org': ipInfo.org,
-        'asn': ipInfo.asn,
-        'asn_org': ipInfo.asnOrg,
-        'latitude': ipInfo.latitude,
-        'longitude': ipInfo.longitude,
-        'is_proxy': ipInfo.isProxy,
-        'is_vpn': ipInfo.isVpn,
-        'is_tor': ipInfo.isTor,
-        'threat_level': ipInfo.threatLevel,
-        'additional_info': ipInfo.additionalInfo,
-        'checked_at': DateTime.now().toIso8601String(),
-      });
+      final supabaseService = SupabaseService();
+      await supabaseService.saveIpCheck(ipInfo);
     } catch (e) {
       debugPrint('Error saving to Supabase: $e');
     }
   }
 
-  /// Get IP check history from Supabase
+  /// Get IP check history from Supabase using SupabaseService
   Future<List<IpInfo>> getIpCheckHistory({int limit = 50}) async {
     try {
-      final response = await _supabase
-          .from('ip_checks')
-          .select()
-          .order('checked_at', ascending: false)
-          .limit(limit);
-
-      final List<IpInfo> history = [];
-      for (final item in response) {
-        try {
-          final ipInfo = IpInfo.fromJson(item);
-          history.add(ipInfo);
-        } catch (e) {
-          debugPrint('Error parsing IP info from history: $e');
-        }
-      }
-
-      return history;
+      final supabaseService = SupabaseService();
+      return await supabaseService.getIpCheckHistory(limit: limit);
     } catch (e) {
       debugPrint('Error getting IP check history: $e');
       return [];

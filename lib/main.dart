@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/splash_screen.dart';
 import 'screens/vps_management_screen.dart';
 import 'screens/ip_check_screen.dart';
+import 'services/supabase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +13,10 @@ Future<void> main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2Znl4dGl0b3Bocm5tcHRkenNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc5NzI5NzQsImV4cCI6MjA1MzU0ODk3NH0.Zt8Zt8Zt8Zt8Zt8Zt8Zt8Zt8Zt8Zt8Zt8Zt8Zt8',
   );
+
+  // Initialize SupabaseService for real-time functionality
+  final supabaseService = SupabaseService();
+  await supabaseService.initializeRealtimeSubscriptions();
 
   runApp(const PABSNetzillaApp());
 }

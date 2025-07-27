@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
-import '../services/services.dart';
+import '../services/supabase_service.dart';
 import 'serangan_screen.dart';
 import 'riwayat_screen.dart';
 
@@ -16,6 +16,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _currentIndex = 0;
   StatistikSerangan _statistik = StatistikSerangan.kosong();
   bool _isLoading = true;
+  final SupabaseService _supabaseService = SupabaseService();
 
   final List<Widget> _screens = [
     const _DashboardContent(),
@@ -26,14 +27,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _loadStatistik();
+    _initializeRealTimeData();
   }
 
-  /// Load statistik dari database
-  Future<void> _loadStatistik() async {
+  /// Initialize real-time data from Supabase
+  Future<void> _initializeRealTimeData() async {
     try {
-      final dbHelper = DatabaseHelper();
-      final statistik = await dbHelper.ambilStatistik();
+      // Initialize real-time subscriptions
+      await _supabaseService.initializeRealtimeSubscriptions();
+
+      // Load initial statistics
+      final statistik = await _supabaseService.getAttackStatistics();
 
       if (mounted) {
         setState(() {
@@ -41,6 +45,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _isLoading = false;
         });
       }
+
+      // Listen for real-time updates
+      _supabaseService.addListener(_onDataChanged);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -48,12 +55,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error memuat statistik: $e'),
+            content: Text('Error memuat data: $e'),
             backgroundColor: Colors.red,
           ),
         );
       }
     }
+  }
+
+  /// Handle real-time data changes
+  void _onDataChanged() async {
+    if (mounted) {
+      try {
+        final statistik = await _supabaseService.getAttackStatistics();
+        setState(() {
+          _statistik = statistik;
+        });
+      } catch (e) {
+        debugPrint('Error updating statistics: $e');
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _supabaseService.removeListener(_onDataChanged);
+    super.dispose();
   }
 
   @override
@@ -66,7 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.refresh),
-                  onPressed: _loadStatistik,
+                  onPressed: _initializeRealTimeData,
                 ),
                 IconButton(
                   icon: const Icon(Icons.settings),

@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../models/vps_server.dart';
+import 'supabase_service.dart';
 
 /// Service untuk mengelola VPS servers
 class VpsServerService extends ChangeNotifier {
@@ -18,7 +19,8 @@ class VpsServerService extends ChangeNotifier {
   final Uuid _uuid = const Uuid();
 
   List<VpsServer> get servers => List.unmodifiable(_servers);
-  Map<String, VpsConnectionInfo> get connections => Map.unmodifiable(_connections);
+  Map<String, VpsConnectionInfo> get connections =>
+      Map.unmodifiable(_connections);
 
   /// Initialize service
   Future<void> initialize() async {
@@ -31,11 +33,11 @@ class VpsServerService extends ChangeNotifier {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/server.json');
-      
+
       if (await file.exists()) {
         final content = await file.readAsString();
         final List<dynamic> jsonList = json.decode(content);
-        
+
         _servers.clear();
         for (final item in jsonList) {
           try {
@@ -45,7 +47,7 @@ class VpsServerService extends ChangeNotifier {
             debugPrint('Error parsing server: $e');
           }
         }
-        
+
         notifyListeners();
       }
     } catch (e) {
@@ -58,7 +60,7 @@ class VpsServerService extends ChangeNotifier {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/server.json');
-      
+
       final jsonList = _servers.map((server) => server.toJson()).toList();
       await file.writeAsString(json.encode(jsonList));
     } catch (e) {
@@ -66,29 +68,18 @@ class VpsServerService extends ChangeNotifier {
     }
   }
 
-  /// Sync dengan Supabase database
+  /// Sync dengan Supabase database using SupabaseService
   Future<void> _syncWithSupabase() async {
     try {
+      final supabaseService = SupabaseService();
+
       // Upload local servers ke Supabase
       for (final server in _servers) {
-        await _supabase.from('vps_servers').upsert(server.toJson());
+        await supabaseService.saveVpsServer(server);
       }
 
       // Download servers dari Supabase
-      final response = await _supabase
-          .from('vps_servers')
-          .select()
-          .order('created_at', ascending: false);
-
-      final List<VpsServer> supabaseServers = [];
-      for (final item in response) {
-        try {
-          final server = VpsServer.fromJson(item as Map<String, dynamic>);
-          supabaseServers.add(server);
-        } catch (e) {
-          debugPrint('Error parsing server from Supabase: $e');
-        }
-      }
+      final supabaseServers = await supabaseService.getVpsServers();
 
       // Merge dengan local servers
       final Set<String> localIds = _servers.map((s) => s.id).toSet();
@@ -134,10 +125,10 @@ class VpsServerService extends ChangeNotifier {
 
       _servers.add(server);
       await _saveServersToLocal();
-      
+
       // Upload ke Supabase
       await _supabase.from('vps_servers').insert(server.toJson());
-      
+
       notifyListeners();
       return true;
     } catch (e) {
@@ -147,7 +138,8 @@ class VpsServerService extends ChangeNotifier {
   }
 
   /// Update server
-  Future<bool> updateServer(String id, {
+  Future<bool> updateServer(
+    String id, {
     String? name,
     String? host,
     int? port,
@@ -174,13 +166,13 @@ class VpsServerService extends ChangeNotifier {
 
       _servers[index] = updatedServer;
       await _saveServersToLocal();
-      
+
       // Update di Supabase
       await _supabase
           .from('vps_servers')
           .update(updatedServer.toJson())
           .eq('id', id);
-      
+
       notifyListeners();
       return true;
     } catch (e) {
@@ -194,12 +186,12 @@ class VpsServerService extends ChangeNotifier {
     try {
       _servers.removeWhere((s) => s.id == id);
       _connections.remove(id);
-      
+
       await _saveServersToLocal();
-      
+
       // Delete dari Supabase
       await _supabase.from('vps_servers').delete().eq('id', id);
-      
+
       notifyListeners();
       return true;
     } catch (e) {
@@ -237,33 +229,40 @@ class VpsServerService extends ChangeNotifier {
     try {
       // Simulate connection test (replace with actual SSH connection)
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // For now, randomly succeed or fail
       final success = DateTime.now().millisecond % 2 == 0;
-      
+
       final connectionInfo = VpsConnectionInfo(
         server: server,
-        status: success ? VpsConnectionStatus.connected : VpsConnectionStatus.error,
+        status: success
+            ? VpsConnectionStatus.connected
+            : VpsConnectionStatus.error,
         errorMessage: success ? null : 'Connection failed',
         connectedAt: success ? DateTime.now() : null,
-        systemInfo: success ? {
-          'os': 'Ubuntu 20.04',
-          'cpu': '2 cores',
-          'memory': '4GB',
-          'disk': '80GB',
-        } : null,
+        systemInfo: success
+            ? {
+                'os': 'Ubuntu 20.04',
+                'cpu': '2 cores',
+                'memory': '4GB',
+                'disk': '80GB',
+              }
+            : null,
       );
 
       _connections[serverId] = connectionInfo;
-      
+
       // Update last connected time
       if (success) {
-        await updateServer(serverId, metadata: {
-          ...?server.metadata,
-          'last_connected': DateTime.now().toIso8601String(),
-        });
+        await updateServer(
+          serverId,
+          metadata: {
+            ...?server.metadata,
+            'last_connected': DateTime.now().toIso8601String(),
+          },
+        );
       }
-      
+
       notifyListeners();
       return connectionInfo;
     } catch (e) {
@@ -272,7 +271,7 @@ class VpsServerService extends ChangeNotifier {
         status: VpsConnectionStatus.error,
         errorMessage: e.toString(),
       );
-      
+
       _connections[serverId] = errorInfo;
       notifyListeners();
       return errorInfo;
@@ -288,14 +287,14 @@ class VpsServerService extends ChangeNotifier {
   Future<bool> loadVpsAndSetupCnc() async {
     try {
       await _loadServersFromLocal();
-      
+
       // Auto connect ke semua active servers
       final activeServers = _servers.where((s) => s.isActive).toList();
-      
+
       for (final server in activeServers) {
         await testConnection(server.id);
       }
-      
+
       return true;
     } catch (e) {
       debugPrint('Error loading VPS and setup CNC: $e');
