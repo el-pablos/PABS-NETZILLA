@@ -57,3 +57,6 @@ server.json
 .pub/
 build/
 .dart_tool/
+
+# VPS Server Configuration (Security)
+assets/data/servers.json
