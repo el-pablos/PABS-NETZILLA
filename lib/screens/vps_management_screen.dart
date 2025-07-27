@@ -324,11 +324,7 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
 
   void _showServerDialog({VpsServer? server}) {
     final isEdit = server != null;
-    final nameController = TextEditingController(text: server?.name ?? '');
     final hostController = TextEditingController(text: server?.host ?? '');
-    final portController = TextEditingController(
-      text: server?.port.toString() ?? '22',
-    );
     final usernameController = TextEditingController(
       text: server?.username ?? '',
     );
@@ -349,19 +345,8 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Server Name'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
                 controller: hostController,
-                decoration: const InputDecoration(labelText: 'Host/IP Address'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: portController,
-                decoration: const InputDecoration(labelText: 'Port'),
-                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'IP Address'),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -384,26 +369,25 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              final name = nameController.text.trim();
               final host = hostController.text.trim();
-              final port = int.tryParse(portController.text.trim()) ?? 22;
               final username = usernameController.text.trim();
               final password = passwordController.text.trim();
 
-              if (name.isEmpty ||
-                  host.isEmpty ||
-                  username.isEmpty ||
-                  password.isEmpty) {
+              if (host.isEmpty || username.isEmpty || password.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Please fill all fields')),
                 );
                 return;
               }
 
+              // Generate auto name and use default port
+              final name = 'VPS ${host.split('.').last}';
+              const port = 22;
+
               bool success;
               if (isEdit) {
                 success = await _vpsService.updateServer(
-                  server!.id,
+                  server.id,
                   name: name,
                   host: host,
                   port: port,
@@ -420,27 +404,29 @@ class _VpsManagementScreenState extends State<VpsManagementScreen> {
                 );
               }
 
-              if (success) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      isEdit
-                          ? 'Server updated successfully'
-                          : 'Server added successfully',
+              if (mounted) {
+                if (success) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isEdit
+                            ? 'Server updated successfully'
+                            : 'Server added successfully',
+                      ),
                     ),
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      isEdit
-                          ? 'Failed to update server'
-                          : 'Failed to add server',
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isEdit
+                            ? 'Failed to update server'
+                            : 'Failed to add server',
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
               }
             },
             child: Text(isEdit ? 'Update' : 'Add'),
