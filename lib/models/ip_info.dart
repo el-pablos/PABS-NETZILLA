@@ -1,4 +1,4 @@
-import 'dart:convert';
+// import 'dart:convert'; // Unused import
 
 /// Model untuk informasi IP address
 class IpInfo {
@@ -50,18 +50,24 @@ class IpInfo {
       city: json['city'] as String?,
       region: json['region'] as String? ?? json['regionName'] as String?,
       country: json['country'] as String? ?? json['countryName'] as String?,
-      countryCode: json['countryCode'] as String? ?? json['country_code'] as String?,
+      countryCode:
+          json['countryCode'] as String? ?? json['country_code'] as String?,
       timezone: json['timezone'] as String?,
       isp: json['isp'] as String?,
       org: json['org'] as String? ?? json['organization'] as String?,
       asn: json['asn'] as String? ?? json['as']?.toString(),
       asnOrg: json['asnOrg'] as String? ?? json['asname'] as String?,
-      latitude: (json['lat'] as num?)?.toDouble() ?? (json['latitude'] as num?)?.toDouble(),
-      longitude: (json['lon'] as num?)?.toDouble() ?? (json['longitude'] as num?)?.toDouble(),
+      latitude:
+          (json['lat'] as num?)?.toDouble() ??
+          (json['latitude'] as num?)?.toDouble(),
+      longitude:
+          (json['lon'] as num?)?.toDouble() ??
+          (json['longitude'] as num?)?.toDouble(),
       isProxy: json['proxy'] as bool? ?? json['is_proxy'] as bool?,
       isVpn: json['vpn'] as bool? ?? json['is_vpn'] as bool?,
       isTor: json['tor'] as bool? ?? json['is_tor'] as bool?,
-      threatLevel: json['threat_level'] as String? ?? json['threatLevel'] as String?,
+      threatLevel:
+          json['threat_level'] as String? ?? json['threatLevel'] as String?,
       additionalInfo: json['additional_info'] as Map<String, dynamic>?,
     );
   }
@@ -202,9 +208,9 @@ class IpInfo {
 
   /// Check if location data is available
   bool get hasLocationData {
-    return city?.isNotEmpty == true || 
-           region?.isNotEmpty == true || 
-           country?.isNotEmpty == true;
+    return city?.isNotEmpty == true ||
+        region?.isNotEmpty == true ||
+        country?.isNotEmpty == true;
   }
 
   /// Check if coordinates are available
@@ -234,7 +240,7 @@ class IpInfo {
   /// Get all available information as map
   Map<String, String> get allInfo {
     final info = <String, String>{};
-    
+
     info['IP Address'] = ip;
     if (hostname?.isNotEmpty == true) info['Hostname'] = hostname!;
     if (hasLocationData) info['Location'] = locationString;
@@ -242,9 +248,10 @@ class IpInfo {
     if (timezone?.isNotEmpty == true) info['Timezone'] = timezone!;
     if (hasIspData) info['ISP/Org'] = ispOrgString;
     if (hasAsnData) info['ASN'] = asnString;
-    if (securityFlags.isNotEmpty) info['Security Flags'] = securityFlags.join(', ');
+    if (securityFlags.isNotEmpty)
+      info['Security Flags'] = securityFlags.join(', ');
     if (threatLevel?.isNotEmpty == true) info['Threat Level'] = threatLevel!;
-    
+
     return info;
   }
 }

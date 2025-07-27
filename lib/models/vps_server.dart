@@ -1,4 +1,4 @@
-import 'dart:convert';
+// import 'dart:convert'; // Unused import
 
 /// Model untuk VPS Server
 class VpsServer {
@@ -122,12 +122,7 @@ class VpsServer {
 }
 
 /// Status koneksi VPS
-enum VpsConnectionStatus {
-  disconnected,
-  connecting,
-  connected,
-  error,
-}
+enum VpsConnectionStatus { disconnected, connecting, connected, error }
 
 /// Model untuk status koneksi VPS
 class VpsConnectionInfo {
