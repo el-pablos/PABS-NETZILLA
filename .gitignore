@@ -47,6 +47,9 @@ app.*.map.json
 # Old project directory (ignore if exists)
 pabs_netzilla/
 
+# VPS Server configuration (sensitive data)
+server.json
+
 # Additional Flutter ignores
 *.lock
 .flutter-plugins-dependencies
