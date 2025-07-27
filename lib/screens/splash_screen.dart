@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lottie/lottie.dart';
 import '../services/services.dart';
 import 'dashboard_screen.dart';
 
@@ -129,29 +130,23 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo dengan animasi
+                    // Lottie Animation
                     ScaleTransition(
                       scale: _logoAnimation,
                       child: Container(
-                        width: 120,
-                        height: 120,
+                        width: 200,
+                        height: 200,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: Colors.grey.shade200,
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.3),
-                              blurRadius: 20,
-                              spreadRadius: 5,
-                            ),
-                          ],
                         ),
-                        child: Icon(
-                          Icons.security,
-                          size: 60,
-                          color: Theme.of(context).colorScheme.onPrimary,
+                        child: Lottie.network(
+                          'https://lottie.host/454aa9e6-01ba-4a88-afa3-5f288a96288a/K7DhFF1RBL.lottie',
+                          width: 180,
+                          height: 180,
+                          fit: BoxFit.contain,
+                          repeat: true,
+                          animate: true,
                         ),
                       ),
                     ),
