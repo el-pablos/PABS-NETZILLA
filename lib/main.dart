@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/splash_screen.dart';
+import 'screens/vps_management_screen.dart';
+import 'screens/ip_check_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +27,10 @@ class PABSNetzillaApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
       home: const SplashScreen(),
+      routes: {
+        '/vps-management': (context) => const VpsManagementScreen(),
+        '/ip-check': (context) => const IpCheckScreen(),
+      },
     );
   }
 
@@ -40,11 +46,9 @@ class PABSNetzillaApp extends StatelessWidget {
         primary: primaryPurple,
         secondary: primaryPurple,
         surface: backgroundBlack,
-        background: backgroundBlack,
         onPrimary: textWhite,
         onSecondary: textWhite,
         onSurface: textWhite,
-        onBackground: textWhite,
       ),
       scaffoldBackgroundColor: backgroundBlack,
       appBarTheme: AppBarTheme(
@@ -63,7 +67,7 @@ class PABSNetzillaApp extends StatelessWidget {
         color: backgroundBlack,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: primaryPurple.withOpacity(0.3)),
+          side: BorderSide(color: primaryPurple.withValues(alpha: 0.3)),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -76,11 +80,11 @@ class PABSNetzillaApp extends StatelessWidget {
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: primaryPurple.withOpacity(0.5)),
+          borderSide: BorderSide(color: primaryPurple.withValues(alpha: 0.5)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: primaryPurple.withOpacity(0.3)),
+          borderSide: BorderSide(color: primaryPurple.withValues(alpha: 0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -89,7 +93,7 @@ class PABSNetzillaApp extends StatelessWidget {
         filled: true,
         fillColor: backgroundBlack,
         labelStyle: const TextStyle(color: textWhite),
-        hintStyle: TextStyle(color: textWhite.withOpacity(0.6)),
+        hintStyle: TextStyle(color: textWhite.withValues(alpha: 0.6)),
       ),
       textTheme: const TextTheme(
         displayLarge: TextStyle(color: textWhite),

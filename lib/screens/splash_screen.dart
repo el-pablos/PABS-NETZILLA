@@ -16,7 +16,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _logoController;
   late AnimationController _textController;
   late AnimationController _progressController;
-  
+
   late Animation<double> _logoAnimation;
   late Animation<double> _textAnimation;
   late Animation<double> _progressAnimation;
@@ -75,22 +75,23 @@ class _SplashScreenState extends State<SplashScreen>
     try {
       // Initialize notification service
       await ServiceNotifikasi().init();
-      
+
       // Initialize database
       await DatabaseHelper().database;
-      
+
       // Simulate loading time
       await Future.delayed(const Duration(seconds: 3));
-      
+
       // Navigate to dashboard
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
                 const DashboardScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
             transitionDuration: const Duration(milliseconds: 500),
           ),
         );
@@ -139,7 +140,9 @@ class _SplashScreenState extends State<SplashScreen>
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.3),
                               blurRadius: 20,
                               spreadRadius: 5,
                             ),
@@ -152,9 +155,9 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // Judul aplikasi dengan animasi
                     FadeTransition(
                       opacity: _textAnimation,
@@ -167,25 +170,31 @@ class _SplashScreenState extends State<SplashScreen>
                           children: [
                             Text(
                               'PABS-NETZILLA',
-                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
+                              style: Theme.of(context).textTheme.headlineMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'DDoS Testing Tool',
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 50),
-                    
+
                     // Progress indicator dengan animasi
                     FadeTransition(
                       opacity: _progressAnimation,
@@ -198,7 +207,9 @@ class _SplashScreenState extends State<SplashScreen>
                               builder: (context, child) {
                                 return LinearProgressIndicator(
                                   value: _progressAnimation.value,
-                                  backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                     Theme.of(context).colorScheme.primary,
                                   ),
@@ -209,9 +220,12 @@ class _SplashScreenState extends State<SplashScreen>
                           const SizedBox(height: 16),
                           Text(
                             'Memuat aplikasi...',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
                           ),
                         ],
                       ),
@@ -220,7 +234,7 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
             ),
-            
+
             // Footer dengan informasi versi
             Padding(
               padding: const EdgeInsets.all(20),

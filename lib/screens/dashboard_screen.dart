@@ -268,6 +268,26 @@ class _DashboardContent extends StatelessWidget {
                   ),
                   const Divider(height: 1),
                   ListTile(
+                    leading: const Icon(Icons.dns),
+                    title: const Text('Kelola VPS'),
+                    subtitle: const Text('Manajemen server VPS untuk serangan'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/vps-management');
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.public),
+                    title: const Text('Cek IP Address'),
+                    subtitle: const Text('Informasi detail IP dan lokasi'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/ip-check');
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
                     leading: const Icon(Icons.analytics),
                     title: const Text('Lihat Laporan'),
                     subtitle: const Text('Analisis performa serangan'),
