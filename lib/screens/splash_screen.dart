@@ -118,6 +118,59 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
+  /// Build Lottie animation with fallback
+  Widget _buildLottieAnimation() {
+    return FutureBuilder<Widget>(
+      future: _loadLottieAnimation(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return snapshot.data!;
+        } else if (snapshot.hasError) {
+          // Fallback to simple animated icon
+          return _buildFallbackAnimation();
+        } else {
+          return _buildFallbackAnimation();
+        }
+      },
+    );
+  }
+
+  /// Load Lottie animation with error handling
+  Future<Widget> _loadLottieAnimation() async {
+    try {
+      return Lottie.network(
+        'https://lottie.host/454aa9e6-01ba-4a88-afa3-5f288a96288a/K7DhFF1RBL.lottie',
+        width: 180,
+        height: 180,
+        fit: BoxFit.contain,
+        repeat: true,
+        animate: true,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildFallbackAnimation();
+        },
+      );
+    } catch (e) {
+      return _buildFallbackAnimation();
+    }
+  }
+
+  /// Fallback animation when Lottie fails
+  Widget _buildFallbackAnimation() {
+    return AnimatedBuilder(
+      animation: _logoController,
+      builder: (context, child) {
+        return Transform.rotate(
+          angle: _logoController.value * 2 * 3.14159,
+          child: Icon(
+            Icons.security,
+            size: 80,
+            color: Theme.of(context).primaryColor,
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,14 +193,7 @@ class _SplashScreenState extends State<SplashScreen>
                           color: Colors.grey.shade200,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Lottie.network(
-                          'https://lottie.host/454aa9e6-01ba-4a88-afa3-5f288a96288a/K7DhFF1RBL.lottie',
-                          width: 180,
-                          height: 180,
-                          fit: BoxFit.contain,
-                          repeat: true,
-                          animate: true,
-                        ),
+                        child: _buildLottieAnimation(),
                       ),
                     ),
 
