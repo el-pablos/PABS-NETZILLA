@@ -4,16 +4,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/splash_screen.dart';
 import 'screens/vps_management_screen.dart';
 import 'screens/ip_check_screen.dart';
-// import 'services/performance_service.dart';
+import 'services/performance_service.dart';
 // import 'services/supabase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Debug mode setup
+  debugPrint('🚀 PABS-NETZILLA Starting in DEBUG mode...');
+
   // Initialize Performance Service first for optimal performance
-  // TODO: Fix PerformanceService errors
-  // final performanceService = PerformanceService();
-  // performanceService.initialize();
+  debugPrint('🔧 Initializing Performance Service...');
+  final performanceService = PerformanceService();
+  performanceService.initialize();
 
   // Performance optimizations
   SystemChrome.setPreferredOrientations([
@@ -40,6 +43,7 @@ Future<void> main() async {
   // final supabaseService = SupabaseService();
   // await supabaseService.initializeRealtimeSubscriptions();
 
+  debugPrint('🎯 Running PABS-NETZILLA App...');
   runApp(const PABSNetzillaApp());
 }
 

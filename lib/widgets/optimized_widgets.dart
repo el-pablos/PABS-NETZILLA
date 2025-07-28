@@ -320,8 +320,8 @@ class OptimizedStreamBuilder<T> extends StatelessWidget {
       initialData: initialData,
       builder: (context, snapshot) {
         // Performance monitoring
-        final performanceService = PerformanceService();
-        performanceService.startOperation('StreamBuilder_${T.toString()}');
+        // final performanceService = PerformanceService();
+        // performanceService.startOperation('StreamBuilder_${T.toString()}');
 
         Widget result;
 
@@ -346,7 +346,7 @@ class OptimizedStreamBuilder<T> extends StatelessWidget {
           result = builder(context, snapshot);
         }
 
-        performanceService.endOperation('StreamBuilder_${T.toString()}');
+        // performanceService.endOperation('StreamBuilder_${T.toString()}');
         return result;
       },
     );
