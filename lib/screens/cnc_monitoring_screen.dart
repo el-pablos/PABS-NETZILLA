@@ -360,27 +360,64 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 16),
-                  Row(
+                  Column(
                     children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _executeCncSetup(),
-                          icon: const Icon(Icons.build),
-                          label: const Text('CNC Setup'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _executeCncSetup(),
+                              icon: const Icon(Icons.build),
+                              label: const Text('CNC Setup'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _showCncStartDialog(),
+                              icon: const Icon(Icons.play_arrow),
+                              label: const Text('CNC Start'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.blue.withValues(alpha: 0.3),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _showCncStartDialog(),
-                          icon: const Icon(Icons.play_arrow),
-                          label: const Text('CNC Start'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'ℹ️ Operation Flow:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[700],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '1. Connect All VPS → Focus on VPS connection only\n'
+                              '2. CNC Setup → Load proxy configuration\n'
+                              '3. CNC Start → Auto-run node scrape.js + start attack',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue[600],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -504,16 +541,42 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
 
   Future<void> _executeCncSetup() async {
     try {
-      await _cncService.cncSetup();
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Loading proxy configuration...'),
+            ],
+          ),
+        ),
+      );
+
+      final result = await _cncService.cncSetup();
+
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('CNC Setup started successfully'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: Text(
+              '📋 CNC Setup completed: ${result.completedCount}/${result.operations.length} operations successful',
+            ),
+            backgroundColor: result.isAllCompleted
+                ? Colors.green
+                : Colors.orange,
           ),
         );
       }
     } catch (e) {
+      // Close loading dialog if still open
+      if (mounted) Navigator.of(context).pop();
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -535,58 +598,93 @@ class _CncMonitoringScreenState extends State<CncMonitoringScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('CNC Start Attack'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: targetController,
-                decoration: const InputDecoration(
-                  labelText: 'Target IP',
-                  hintText: 'e.g., 192.168.1.1',
+        title: const Text('🚀 CNC Start Attack'),
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+        content: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.green.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info, color: Colors.green[700], size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Will auto-run node scrape.js before starting attack',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.green[700],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: portController,
-                decoration: const InputDecoration(
-                  labelText: 'Port',
-                  hintText: 'e.g., 80',
+                const SizedBox(height: 16),
+                TextField(
+                  controller: targetController,
+                  decoration: const InputDecoration(
+                    labelText: 'Target IP',
+                    hintText: 'e.g., 192.168.1.1',
+                  ),
                 ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: selectedMethod,
-                decoration: const InputDecoration(labelText: 'Method'),
-                items: ['HTTP', 'HTTPS', 'TCP', 'UDP']
-                    .map(
-                      (method) =>
-                          DropdownMenuItem(value: method, child: Text(method)),
-                    )
-                    .toList(),
-                onChanged: (value) => selectedMethod = value!,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: durationController,
-                decoration: const InputDecoration(
-                  labelText: 'Duration (seconds)',
-                  hintText: 'e.g., 60',
+                const SizedBox(height: 16),
+                TextField(
+                  controller: portController,
+                  decoration: const InputDecoration(
+                    labelText: 'Port',
+                    hintText: 'e.g., 80',
+                  ),
+                  keyboardType: TextInputType.number,
                 ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: threadsController,
-                decoration: const InputDecoration(
-                  labelText: 'Threads',
-                  hintText: 'e.g., 100',
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedMethod,
+                  decoration: const InputDecoration(labelText: 'Method'),
+                  items: ['HTTP', 'HTTPS', 'TCP', 'UDP']
+                      .map(
+                        (method) => DropdownMenuItem(
+                          value: method,
+                          child: Text(method),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) => selectedMethod = value!,
                 ),
-                keyboardType: TextInputType.number,
-              ),
-            ],
+                const SizedBox(height: 16),
+                TextField(
+                  controller: durationController,
+                  decoration: const InputDecoration(
+                    labelText: 'Duration (seconds)',
+                    hintText: 'e.g., 60',
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: threadsController,
+                  decoration: const InputDecoration(
+                    labelText: 'Threads',
+                    hintText: 'e.g., 100',
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
