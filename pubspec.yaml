@@ -1,8 +1,14 @@
 name: pabs_netzilla
-description: "PABS-NETZILLA - Aplikasi Android untuk DDoS Testing Tool"
+description: "PABS-NETZILLA - Advanced VPS Management and Network Operations Tool for Professional Network Infrastructure Management"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# Application metadata for SEO and store optimization
+homepage: https://github.com/el-pablos/PABS-NETZILLA
+repository: https://github.com/el-pablos/PABS-NETZILLA.git
+issue_tracker: https://github.com/el-pablos/PABS-NETZILLA/issues
+documentation: https://github.com/el-pablos/PABS-NETZILLA/wiki
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43

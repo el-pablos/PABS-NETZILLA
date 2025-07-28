@@ -12,7 +12,10 @@
     <application
         android:label="PABS-NETZILLA"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:description="Advanced VPS Management and Network Operations Tool"
+        android:hardwareAccelerated="true"
+        android:largeHeap="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
