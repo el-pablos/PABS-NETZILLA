@@ -36,7 +36,8 @@ class CncService {
 
   /// Connect to all VPS servers at once
   Future<Map<String, dynamic>> connectAllVps() async {
-    debugPrint('🚀 Starting Connect All VPS operation...');
+    debugPrint('🚀 [DEBUG] Starting Connect All VPS operation...');
+    debugPrint('📱 [DEBUG] Device: Android Debug Mode');
 
     final results = <String, dynamic>{
       'success': false,
@@ -47,13 +48,7 @@ class CncService {
     };
 
     try {
-      // Step 1: Run scrape.js to get user agents
-      await _runScrapeScript();
-
-      // Step 2: Load proxy list
-      await _loadProxyList();
-
-      // Step 3: Get all VPS servers
+      // Step 1: Get all VPS servers (no scraping yet)
       final servers = _vpsService.servers;
       results['totalCount'] = servers.length;
 
@@ -62,11 +57,27 @@ class CncService {
         return results;
       }
 
-      // Step 4: Connect to all VPS servers concurrently
-      final connectionFutures = servers.map(
-        (server) => _connectSingleVps(server),
-      );
-      final connectionResults = await Future.wait(connectionFutures);
+      debugPrint('📡 Connecting to ${servers.length} VPS servers...');
+
+      // Step 2: Connect to VPS servers in batches to prevent memory overload
+      const batchSize = 5; // Process 5 VPS at a time
+      final connectionResults = <Map<String, dynamic>>[];
+
+      for (int i = 0; i < servers.length; i += batchSize) {
+        final batch = servers.skip(i).take(batchSize).toList();
+        debugPrint(
+          '🔄 Processing batch ${(i ~/ batchSize) + 1}/${(servers.length / batchSize).ceil()}: ${batch.length} servers',
+        );
+
+        final batchFutures = batch.map((server) => _connectSingleVps(server));
+        final batchResults = await Future.wait(batchFutures);
+        connectionResults.addAll(batchResults);
+
+        // Small delay between batches to prevent overwhelming
+        if (i + batchSize < servers.length) {
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+      }
 
       // Step 5: Process results
       int connectedCount = 0;
@@ -77,7 +88,7 @@ class CncService {
         _vpsConnectionStatus[server.id] = result['success'] ?? false;
         if (result['success'] == true) {
           connectedCount++;
-          _vpsUserAgents[server.id] = result['userAgent'] ?? 'Unknown';
+          // Don't assign user agents yet, will be done in CNC Setup
         } else {
           results['errors'].add(
             '${server.name}: ${result['error'] ?? 'Unknown error'}',
@@ -90,7 +101,7 @@ class CncService {
       results['connectedCount'] = connectedCount;
       results['success'] = connectedCount > 0;
 
-      // Step 6: Broadcast monitoring update
+      // Step 3: Broadcast monitoring update
       _broadcastMonitoringUpdate();
 
       debugPrint(
@@ -108,7 +119,11 @@ class CncService {
   Future<CncBatchOperation> cncSetup({
     Map<String, dynamic>? globalParameters,
   }) async {
-    debugPrint('🔧 Starting CNC Setup operation...');
+    debugPrint('🔧 [DEBUG] Starting CNC Setup operation...');
+    debugPrint('📋 [DEBUG] Will load proxy configuration only');
+
+    // Step 1: Run proxy scraping first
+    await _runProxyScraping();
 
     final servers = _vpsService.servers;
     final operations = <CncOperation>[];
@@ -154,7 +169,11 @@ class CncService {
     int? threads,
     Map<String, dynamic>? additionalParameters,
   }) async {
-    debugPrint('🚀 Starting CNC Start operation...');
+    debugPrint('🚀 [DEBUG] Starting CNC Start operation...');
+    debugPrint('🔍 [DEBUG] Will auto-run node scrape.js first');
+
+    // Step 1: Auto-run node scrape.js before starting attack
+    await _runNodeScrapeScript();
 
     final servers = _vpsService.servers.where((s) => s.isActive).toList();
     final operations = <CncOperation>[];
@@ -333,25 +352,43 @@ class CncService {
     ];
   }
 
-  /// Run scrape scripts to get proxies and user agents
-  Future<void> _runScrapeScript() async {
+  /// Run proxy scraping for CNC Setup
+  Future<void> _runProxyScraping() async {
     try {
-      debugPrint('🔍 Running scrape scripts...');
+      debugPrint('📋 Running proxy scraping for CNC Setup...');
+
+      // Load existing proxy list first
+      await _loadProxyList();
+
+      debugPrint('✅ Proxy scraping for CNC Setup completed');
+    } catch (e) {
+      debugPrint('❌ Error in proxy scraping: $e');
+      await _createDefaultProxyFile(
+        File('${Directory.current.path}/proxy.txt'),
+      );
+    }
+  }
+
+  /// Run node scrape.js for CNC Start
+  Future<void> _runNodeScrapeScript() async {
+    try {
+      debugPrint('🔍 Auto-running node scrape.js for CNC Start...');
 
       // Get current working directory (project root)
       final currentDir = Directory.current;
 
       // Run proxy scraper (scrape.js)
-      debugPrint('📋 Running proxy scraper...');
+      debugPrint('📋 Executing: node scrape.js');
       final proxyResult = await Process.run('node', [
         'scrape.js',
       ], workingDirectory: currentDir.path);
 
       if (proxyResult.exitCode == 0) {
-        debugPrint('✅ Proxy scraper executed successfully');
+        debugPrint('✅ node scrape.js executed successfully');
+        debugPrint('📄 Output: ${proxyResult.stdout}');
         await _loadProxyList();
       } else {
-        debugPrint('❌ Proxy scraper failed: ${proxyResult.stderr}');
+        debugPrint('❌ node scrape.js failed: ${proxyResult.stderr}');
         await _createDefaultProxyFile(File('${currentDir.path}/proxy.txt'));
       }
 
@@ -370,7 +407,7 @@ class CncService {
         _userAgentList.addAll(_getDefaultUserAgents());
       }
     } catch (e) {
-      debugPrint('❌ Error running scrape scripts: $e');
+      debugPrint('❌ Error running node scrape.js: $e');
       // Fallback to defaults
       _userAgentList.addAll(_getDefaultUserAgents());
       await _createDefaultProxyFile(
@@ -409,12 +446,7 @@ class CncService {
 
   /// Connect to single VPS server
   Future<Map<String, dynamic>> _connectSingleVps(VpsServer server) async {
-    final result = <String, dynamic>{
-      'success': false,
-      'userAgent': '',
-      'proxy': '',
-      'error': '',
-    };
+    final result = <String, dynamic>{'success': false, 'error': ''};
 
     try {
       debugPrint('🔗 Connecting to VPS: ${server.name}');
@@ -423,18 +455,7 @@ class CncService {
       final connectionInfo = await _vpsService.testConnection(server.id);
 
       if (connectionInfo.status == VpsConnectionStatus.connected) {
-        // Assign random user agent and proxy
-        if (_userAgentList.isNotEmpty) {
-          result['userAgent'] =
-              _userAgentList[DateTime.now().millisecond %
-                  _userAgentList.length];
-        }
-
-        if (_proxyList.isNotEmpty) {
-          result['proxy'] =
-              _proxyList[DateTime.now().millisecond % _proxyList.length];
-        }
-
+        // Just test connection, don't assign user agent/proxy yet
         result['success'] = true;
         debugPrint('✅ Connected to VPS: ${server.name}');
       } else {
