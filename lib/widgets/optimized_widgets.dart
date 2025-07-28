@@ -7,9 +7,9 @@ abstract class OptimizedStatefulWidget extends StatefulWidget {
 }
 
 /// Optimized State that implements performance best practices
-abstract class OptimizedState<T extends OptimizedStatefulWidget> extends State<T>
+abstract class OptimizedState<T extends OptimizedStatefulWidget>
+    extends State<T>
     with AutomaticKeepAliveClientMixin {
-  
   @override
   bool get wantKeepAlive => true;
 
@@ -38,7 +38,10 @@ abstract class OptimizedState<T extends OptimizedStatefulWidget> extends State<T
   void onDispose() {}
 
   /// Optimized setState with debouncing
-  void optimizedSetState(VoidCallback fn, {Duration delay = const Duration(milliseconds: 100)}) {
+  void optimizedSetState(
+    VoidCallback fn, {
+    Duration delay = const Duration(milliseconds: 100),
+  }) {
     PerformanceService.debounce(() {
       if (mounted) {
         setState(fn);
@@ -47,7 +50,11 @@ abstract class OptimizedState<T extends OptimizedStatefulWidget> extends State<T
   }
 
   /// Throttled setState for high-frequency updates
-  void throttledSetState(VoidCallback fn, String key, {Duration interval = const Duration(milliseconds: 500)}) {
+  void throttledSetState(
+    VoidCallback fn,
+    String key, {
+    Duration interval = const Duration(milliseconds: 500),
+  }) {
     if (PerformanceService.throttle(key, interval: interval)) {
       if (mounted) {
         setState(fn);
@@ -86,22 +93,28 @@ class OptimizedCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: borderRadius ?? BorderRadius.circular(8),
       ),
-      child: padding != null
-          ? Padding(padding: padding!, child: child)
-          : child,
+      child: padding != null ? Padding(padding: padding!, child: child) : child,
     );
 
     if (lazy) {
-      return PerformanceService.lazyBuilder(
-        builder: () => cardWidget,
-        placeholder: Container(
-          margin: margin ?? const EdgeInsets.all(8),
-          height: 100,
-          decoration: BoxDecoration(
-            color: Colors.grey.withValues(alpha: 0.1),
-            borderRadius: borderRadius ?? BorderRadius.circular(8),
-          ),
+      return FutureBuilder<Widget>(
+        future: Future.delayed(
+          const Duration(milliseconds: 100),
+          () => cardWidget,
         ),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return snapshot.data!;
+          }
+          return Container(
+            margin: margin ?? const EdgeInsets.all(8),
+            height: 100,
+            decoration: BoxDecoration(
+              color: Colors.grey.withValues(alpha: 0.1),
+              borderRadius: borderRadius ?? BorderRadius.circular(8),
+            ),
+          );
+        },
       );
     }
 
@@ -130,12 +143,16 @@ class OptimizedListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PerformanceService.efficientListView(
+    return ListView.builder(
+      controller: controller,
+      shrinkWrap: shrinkWrap,
+      padding: padding,
       itemCount: itemCount,
       itemBuilder: itemBuilder,
-      controller: controller,
-      padding: padding,
-      shrinkWrap: shrinkWrap,
+      // Optimize for performance
+      cacheExtent: 100,
+      addAutomaticKeepAlives: false,
+      addRepaintBoundaries: false,
     );
   }
 }
@@ -163,17 +180,22 @@ class OptimizedImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ImageProvider imageProvider;
+    if (imagePath.startsWith('http')) {
+      imageProvider = NetworkImage(imagePath);
+    } else if (imagePath.startsWith('assets/')) {
+      imageProvider = AssetImage(imagePath);
+    } else {
+      imageProvider = AssetImage(imagePath);
+    }
+
     final imageWidget = Image(
-      image: PerformanceService.optimizeImage(
-        imagePath,
-        width: width,
-        height: height,
-      ),
+      image: imageProvider,
       width: width,
       height: height,
       fit: fit ?? BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
-        return errorWidget ?? 
+        return errorWidget ??
             Container(
               width: width,
               height: height,
@@ -196,14 +218,22 @@ class OptimizedImage extends StatelessWidget {
     );
 
     if (lazy) {
-      return PerformanceService.lazyBuilder(
-        builder: () => imageWidget,
-        placeholder: placeholder ??
-            Container(
-              width: width,
-              height: height,
-              color: Colors.grey.withValues(alpha: 0.1),
-            ),
+      return FutureBuilder<Widget>(
+        future: Future.delayed(
+          const Duration(milliseconds: 100),
+          () => imageWidget,
+        ),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return snapshot.data!;
+          }
+          return placeholder ??
+              Container(
+                width: width,
+                height: height,
+                color: Colors.grey.withValues(alpha: 0.1),
+              );
+        },
       );
     }
 
@@ -294,9 +324,10 @@ class OptimizedStreamBuilder<T> extends StatelessWidget {
         performanceService.startOperation('StreamBuilder_${T.toString()}');
 
         Widget result;
-        
+
         if (snapshot.hasError) {
-          result = errorWidget ??
+          result =
+              errorWidget ??
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -307,10 +338,10 @@ class OptimizedStreamBuilder<T> extends StatelessWidget {
                   ],
                 ),
               );
-        } else if (snapshot.connectionState == ConnectionState.waiting && 
-                   snapshot.data == null) {
-          result = loadingWidget ??
-              const Center(child: CircularProgressIndicator());
+        } else if (snapshot.connectionState == ConnectionState.waiting &&
+            snapshot.data == null) {
+          result =
+              loadingWidget ?? const Center(child: CircularProgressIndicator());
         } else {
           result = builder(context, snapshot);
         }
@@ -342,7 +373,8 @@ class OptimizedFutureBuilder<T> extends StatefulWidget {
   });
 
   @override
-  State<OptimizedFutureBuilder<T>> createState() => _OptimizedFutureBuilderState<T>();
+  State<OptimizedFutureBuilder<T>> createState() =>
+      _OptimizedFutureBuilderState<T>();
 }
 
 class _OptimizedFutureBuilderState<T> extends State<OptimizedFutureBuilder<T>> {
@@ -354,7 +386,7 @@ class _OptimizedFutureBuilderState<T> extends State<OptimizedFutureBuilder<T>> {
   void initState() {
     super.initState();
     _cacheKey = widget.future.hashCode.toString();
-    
+
     if (widget.cacheResult && _cache.containsKey(_cacheKey)) {
       _cachedSnapshot = _cache[_cacheKey] as AsyncSnapshot<T>?;
     }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 // import '../services/supabase_service.dart';
 import '../widgets/optimized_widgets.dart';
-import '../services/performance_service.dart';
 import '../services/vps_server_service.dart';
 import 'serangan_screen.dart';
 import 'riwayat_screen.dart';
@@ -21,12 +20,6 @@ class _DashboardScreenState extends OptimizedState<DashboardScreen> {
   bool _isLoading = true;
   // final SupabaseService _supabaseService = SupabaseService();
 
-  final List<Widget> _screens = [
-    const _DashboardContent(),
-    const SeranganScreen(),
-    const RiwayatScreen(),
-  ];
-
   @override
   void onInitState() {
     _loadStatistik();
@@ -38,7 +31,6 @@ class _DashboardScreenState extends OptimizedState<DashboardScreen> {
       // Simulasi data real-time dari VPS servers
       final vpsService = VpsServerService();
       final servers = vpsService.servers;
-      final activeServers = servers.where((s) => s.isActive).length;
 
       // Simulasi statistik real-time
       final now = DateTime.now();
